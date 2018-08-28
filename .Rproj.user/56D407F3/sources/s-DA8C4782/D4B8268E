@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535421180570.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D4B8268E",
+    "lastKnownWriteTime" : 1535426190,
+    "last_content_update" : 1535426190088,
+    "path" : "~/Dropbox/Github/StoEMMIX/R/Benchmarking_exc.R",
+    "project_path" : "R/Benchmarking_exc.R",
+    "properties" : {
+        "cursorPosition" : "4,57",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
