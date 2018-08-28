@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1535417847432.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B3704599",
+    "lastKnownWriteTime" : 1535421092,
+    "last_content_update" : 1535421092589,
+    "path" : "~/Dropbox/Github/StoEMMIX/R/Prototype2_exc.R",
+    "project_path" : "R/Prototype2_exc.R",
+    "properties" : {
+        "cursorPosition" : "78,8",
+        "scrollLine" : "57",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
