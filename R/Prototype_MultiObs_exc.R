@@ -4,6 +4,9 @@ library(mvtnorm)
 library(mclust)
 library(EMMIXskew)
 library(mixtools)
+library(inline)
+library(Rcpp)
+library(RcppArmadillo)
 
 ### Load Iris Data
 # Data <- iris
@@ -18,7 +21,7 @@ Gain <- function(COUNT) {
 ### Initialization parameters
 # Groups <- 3
 Dim_vec <- dim(Data)
-Batch_size <- NN/10000
+Batch_size <- NN/10
 MAX_num <- (attributes(MC)$info[1]*NN)/Batch_size
 Pol_start <- round(MAX_num/2)
 
@@ -28,7 +31,7 @@ Pi_vec <- msEst$parameters$pro
 ### Initialize Mean
 # hcTree <- hcVVV(data = Data)
 # cl <- hclass(hcTree, Groups)
-msEst <- mstep(modelName = "VVV", data = Data, z = unmap(A$id))
+msEst <- mstep(modelName = "VVV", data = Data, z =  unmap(Samp))
 Mean_list <- list()
 for (ii in 1:Groups) {
   Mean_list[[ii]] <- msEst$parameters$mean[,ii]
