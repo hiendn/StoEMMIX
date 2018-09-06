@@ -1,5 +1,0 @@
-hcTree <- hcVVV(data = Data)
-cl <- hclass(hcTree, Groups)
-msEst <- mstep(modelName = "VVV", data = Data, z = unmap(cl))
-
-MC <- em('VVV', data=Data, parameters = msEst$parameters)
