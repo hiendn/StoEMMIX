@@ -21,9 +21,9 @@ Gain <- function(COUNT) {
 ### Initialization parameters
 # Groups <- 3
 Dim_vec <- dim(Data)
-Batch_size <- NN/10
-MAX_num <- (attributes(MC)$info[1]*NN)/Batch_size
-Pol_start <- round(MAX_num/2)
+Batch_size <- NN/100
+MAX_num <- (-attributes(MC)$info[1]*NN)/Batch_size
+# Pol_start <- round(MAX_num/2)
 
 ### Initialize Pi
 Pi_vec <- msEst$parameters$pro
@@ -71,10 +71,16 @@ T3 <- mapply(function(x,y,z){x*z+y%*%t(y)/x},T1,T2,Cov_list)
 T3 <- lapply(seq_len(ncol(T3)), function(i) matrix(T3[,i],Dim_vec[2],Dim_vec[2]))
 ### Algorithm
 COUNT <- 0
+
 # Initialize some lists
-Run_Pi_list <- list()
-Run_Mean_list <- list()
-Run_Cov_list <- list()
+# Run_Pi_list <- list()
+# Run_Mean_list <- list()
+# Run_Cov_list <- list()
+
+# Initialize some Pi
+Cont_Pi_vec <- Pi_vec
+Cont_Mean_list <- Mean_list
+Cont_Cov_list <- Cov_list
 
 while(COUNT<MAX_num) {
   
@@ -82,9 +88,9 @@ while(COUNT<MAX_num) {
   COUNT <- COUNT + 1
   
   ### Averaging lists
-  Run_Pi_list[[COUNT]] <- Pi_vec
-  Run_Mean_list[[COUNT]] <- matrix(unlist(Mean_list),Dim_vec[2],Groups,byrow = F)
-  Run_Cov_list[[COUNT]] <- array(unlist(Cov_list),dim=c(Dim_vec[2],Dim_vec[2],Groups))
+  # Run_Pi_list[[COUNT]] <- Pi_vec
+  # Run_Mean_list[[COUNT]] <- matrix(unlist(Mean_list),Dim_vec[2],Groups,byrow = F)
+  # Run_Cov_list[[COUNT]] <- array(unlist(Cov_list),dim=c(Dim_vec[2],Dim_vec[2],Groups))
   
   X_samp <- Data[sample(Dim_vec[1],Batch_size,replace=T),]
   Tau <- Multi_Tau_fun(X_samp,Pi_vec,Mean_list,Cov_list)
@@ -109,6 +115,15 @@ while(COUNT<MAX_num) {
     (T3[[ii]]-T2[[ii]]%*%t(T2[[ii]])/T1[ii])/T1[ii]
   })
   
+  ### Continuous Update
+  Cont_Pi_vec <- Cont_Pi_vec*COUNT/(COUNT+1) + Pi_vec/(COUNT+1)
+  Cont_Mean_list <- lapply(1:Groups, function (ii) {
+    Cont_Mean_list[[ii]]*COUNT/(COUNT+1) + Mean_list[[ii]]/(COUNT+1)
+  })
+  Cont_Cov_list <- lapply(1:Groups, function (ii) {
+    Cont_Cov_list[[ii]]*COUNT/(COUNT+1) + Cov_list[[ii]]/(COUNT+1)
+  })
+  
   print(COUNT)
   # print(Pi_vec)
   # print(Mean_list)
@@ -128,15 +143,15 @@ Refit <- mvnormalmixEM(x = Data,
 print(Refit$all.loglik[1])
 
 ### Polyak Averaging
-Red_Pi_vec <- Reduce('+',Run_Pi_list[-(1:Pol_start)])/(COUNT-Pol_start+1)
-Red_Mean_list <- Reduce('+',Run_Mean_list[-(1:Pol_start)])/(COUNT-Pol_start+1)
-Red_Mean_list <- lapply(1:Groups,function(ii){Red_Mean_list[,ii]})
-Red_Cov_list <- Reduce('+',Run_Cov_list[-(1:Pol_start)])/(COUNT-Pol_start+1)
-Red_Cov_list <- lapply(1:Groups,function(ii){Red_Cov_list[,,ii]})
+# Red_Pi_vec <- Reduce('+',Run_Pi_list[-(1:Pol_start)])/(COUNT-Pol_start+1)
+# Red_Mean_list <- Reduce('+',Run_Mean_list[-(1:Pol_start)])/(COUNT-Pol_start+1)
+# Red_Mean_list <- lapply(1:Groups,function(ii){Red_Mean_list[,ii]})
+# Red_Cov_list <- Reduce('+',Run_Cov_list[-(1:Pol_start)])/(COUNT-Pol_start+1)
+# Red_Cov_list <- lapply(1:Groups,function(ii){Red_Cov_list[,,ii]})
 Refit_pol <- mvnormalmixEM(x = Data,
-                       lambda = Red_Pi_vec,
-                       mu = Red_Mean_list,
-                       sigma = Red_Cov_list,
+                       lambda = Cont_Pi_vec,
+                       mu = Cont_Mean_list,
+                       sigma = Cont_Cov_list,
                        k = Groups,
                        maxit = 1)
 print(Refit_pol$all.loglik[1])

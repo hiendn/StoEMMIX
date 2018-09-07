@@ -1,7 +1,7 @@
 library(MixSim)
 library(mclust)
 Groups <- 5
-NN <- 10000
+NN <- 1000
 Q <- MixSim(MaxOmega = 0.5, K = Groups, p = 2,PiLow=1/(2*Groups))
 A <- simdataset(n = NN, Pi = Q$Pi, Mu = Q$Mu, S = Q$S, n.noise = 0)
 Data <- A$X
@@ -11,7 +11,7 @@ Samp <- sample(1:Groups,NN,replace = T)
 msEst <- mstep(modelName = "VVV", data = Data, z = unmap(Samp))
 Dim_vec <- dim(Data)
 
-MC <- em('VVV', data=Data, parameters = msEst$parameters)
+MC <- em('VVV', data=Data, parameters = msEst$parameters, control = emControl(itmax=c(20,20)))
 
 MC$parameters
 attributes(MC)$info
