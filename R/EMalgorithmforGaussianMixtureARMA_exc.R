@@ -1,26 +1,27 @@
 gmm_full_src <- '
-// Convert all of the matrix objects to C objects
-Rcpp::NumericMatrix data_c(data_r);
-Rcpp::NumericVector pi_c(pi_r);
-Rcpp::NumericMatrix mean_c(mean_r);
-Rcpp::NumericVector cov_c(cov_r);
-
-// Extract and convert the integer objects
-int n_c = data_c.nrow();
-int d_c = data_c.ncol();
+using namespace arma;
 
 // Convert necessary matrix objects to arma
-arma::mat data_a(data_c.begin(), n_c, d_c, false);
-arma::rowvec pi_a(pi_c.begin(), groups_r, false);
-arma::mat mean_a(mean_c.begin(), d_c, groups_r, false);
-arma::cube cov_a(cov_c.begin(), d_c, d_c, groups_r, false);
+mat data_a = as<mat>(data_r);
+rowvec pi_a = as<rowvec>(pi_r);
+mat mean_a = as<mat>(mean_r);
+cube cov_a = as<cube>(cov_r);
+int maxit_a = as<int>(maxit_r);
+int groups_a = as<int>(groups_r);
 
 // Initialize a gmm_full object
-arma::gmm_full model;
+gmm_full model;
 
 // Set the parameters
 model.set_params(mean_a, cov_a, pi_a);
-bool model.learn(data_a, groups_r, maha_dist, keep_existing, 0, maxit_r, 2.2e-16, false);
+model.learn(data_a, groups_a, maha_dist, keep_existing, 0, maxit_a, 2.2e-16, false);
+
+//
+return Rcpp::List::create(
+Rcpp::Named("log-likelihood")=model.sum_log_p(data_a),
+Rcpp::Named("proportions")=model.hefts,
+Rcpp::Named("means")=model.means,
+Rcpp::Named("covariances")=model.fcovs);
 '
 
 GMM_arma <- cxxfunction(signature(data_r='numeric',
@@ -30,3 +31,7 @@ GMM_arma <- cxxfunction(signature(data_r='numeric',
                                   maxit_r='integer',
                                   groups_r='integer'),
                         gmm_full_src, plugin = 'RcppArmadillo')
+
+GMM_arma(t(Data), msEst$parameters$pro, msEst$parameters$mean,
+         msEst$parameters$variance$sigma,
+         20,5)
