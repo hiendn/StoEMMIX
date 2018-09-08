@@ -1,8 +1,8 @@
 library(MixSim)
 library(mclust)
-Groups <- 5
-NN <- 1000
-Q <- MixSim(MaxOmega = 0.5, K = Groups, p = 2,PiLow=1/(2*Groups))
+Groups <- 20
+NN <- 1000000
+Q <- MixSim(MaxOmega = 0.5, K = Groups, p = 10,PiLow=1/(2*Groups))
 A <- simdataset(n = NN, Pi = Q$Pi, Mu = Q$Mu, S = Q$S, n.noise = 0)
 Data <- A$X
 # hcTree <- hcVVV(data = Data)

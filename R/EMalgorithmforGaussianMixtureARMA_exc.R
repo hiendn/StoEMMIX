@@ -16,12 +16,12 @@ gmm_full model;
 model.set_params(mean_a, cov_a, pi_a);
 model.learn(data_a, groups_a, maha_dist, keep_existing, 0, maxit_a, 2.2e-16, false);
 
-//
+// 
 return Rcpp::List::create(
-Rcpp::Named("log-likelihood")=model.sum_log_p(data_a),
-Rcpp::Named("proportions")=model.hefts,
-Rcpp::Named("means")=model.means,
-Rcpp::Named("covariances")=model.fcovs);
+  Rcpp::Named("log-likelihood")=model.sum_log_p(data_a),
+  Rcpp::Named("proportions")=model.hefts,
+  Rcpp::Named("means")=model.means,
+  Rcpp::Named("covariances")=model.fcovs);
 '
 
 GMM_arma <- cxxfunction(signature(data_r='numeric',
@@ -34,4 +34,4 @@ GMM_arma <- cxxfunction(signature(data_r='numeric',
 
 GMM_arma(t(Data), msEst$parameters$pro, msEst$parameters$mean,
          msEst$parameters$variance$sigma,
-         20,5)
+         20,10)
