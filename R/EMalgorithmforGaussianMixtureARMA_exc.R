@@ -1,3 +1,7 @@
+library(Rcpp)
+library(RcppArmadillo)
+library(inline)
+
 gmm_full_src <- '
 using namespace arma;
 
@@ -34,4 +38,4 @@ GMM_arma <- cxxfunction(signature(data_r='numeric',
 
 GMM_arma(t(Data), msEst$parameters$pro, msEst$parameters$mean,
          msEst$parameters$variance$sigma,
-         20,10)
+         2,10)
