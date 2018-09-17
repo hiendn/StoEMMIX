@@ -1,3 +1,7 @@
+library(Rcpp)
+library(RcppArmadillo)
+library(inline)
+
 stoEMMIXpol_src <- '
 using namespace arma;
 using namespace Rcpp;

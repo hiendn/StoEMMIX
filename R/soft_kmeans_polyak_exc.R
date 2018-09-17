@@ -172,7 +172,7 @@ vec ss_a = zeros<vec>(groups_a);
 for (int nn = 0; nn < obs_a; nn++) {
 for (int gg = 0; gg < groups_a; gg++) {
 if (alloc_a(nn) == gg) {
-ss_a(gg) = ss_a(gg) + 1 + pow(norm(data_a.col(nn)-mean_a.col(gg)),2);
+ss_a(gg) = ss_a(gg) + pow(norm(data_a.col(nn)-mean_a.col(gg)),2);
 }
 }
 }
