@@ -14,6 +14,7 @@ cube cov_hold = as<cube>(cov_r);
 int maxit_a = as<int>(maxit_r);
 double rate_a = as<double>(rate_r);
 double base_a = as<double>(base_r);
+double safe_a = as<double>(safe_r);
 int batch_a = as<int>(batch_r);
 int groups_a = as<int>(groups_r);
 
@@ -28,7 +29,7 @@ int dim_a = data_a.n_rows;
 
 // Safe variances
 for (int gg = 0; gg < groups_a; gg++) {
-cov_a.slice(gg) = cov_a.slice(gg) + 0.1*eye<mat>(dim_a,dim_a);
+cov_a.slice(gg) = cov_a.slice(gg) + safe_a*eye<mat>(dim_a,dim_a);
 }
 
 // Initialize the Gaussian mixture model object
@@ -102,7 +103,7 @@ T3.slice(gg) = T3.slice(gg) + gain*tau(gg,nn)*subdata_a.col(nn)*trans(subdata_a.
 pi_a = T1/batch_a;
 for (int gg = 0; gg < groups_a; gg++) {
 mean_a.col(gg) = T2.col(gg)/T1(gg);
-cov_a.slice(gg) = (T3.slice(gg)-T2.col(gg)*trans(T2.col(gg))/T1(gg))/T1(gg) + 0.1*eye<mat>(dim_a,dim_a);
+cov_a.slice(gg) = (T3.slice(gg)-T2.col(gg)*trans(T2.col(gg))/T1(gg))/T1(gg) + safe_a*eye<mat>(dim_a,dim_a);
 }
 
 // Compute polyak averages
@@ -145,16 +146,18 @@ stoEMMIX_polsafe <- cxxfunction(signature(data_r='numeric',
                                   groups_r='integer',
                                   rate_r='numeric',
                                   base_r='numeric',
-                                  batch_r='integer'),
+                                  batch_r='integer',
+                                  safe_r='numeric'),
                         stoEMMIXpolsafe_src, plugin = 'RcppArmadillo')
 
 
 
 
-Data <- train[,-785]
-PCA <- prcomp(Data)
-Data <- predict(PCA,Data)
-Data <- Data[,1:100]
+Data_hold <- train[,-785]
+PCA <- prcomp(Data_hold)
+Data_hold <- predict(PCA,Data_hold)
+Data <- Data_hold[,1:100]
+
 Samp <- sample(1:10,dim(Data)[1],replace = T)
 id <- Samp
 K <- max(id)
@@ -165,4 +168,6 @@ S <- sapply(1:K, function(k){ var(Data[id == k,]) })
 dim(S) <- c(dim(Data)[2], dim(Data)[2], K)
 Sto <- stoEMMIX_polsafe(t(Data), Pi, t(Mu),
                     S,
-                    100,10,0.6,1,10000)
+                    1000,10,0.6,0.5,10000,1)
+Cluster <- GMM_arma_cluster(t(Data),Sto$reg_proportions,Sto$reg_means,Sto$reg_covariances)
+adjustedRandIndex(Cluster$Cluster,train$y)

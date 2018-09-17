@@ -36,6 +36,34 @@ GMM_arma <- cxxfunction(signature(data_r='numeric',
                                   groups_r='integer'),
                         gmm_full_src, plugin = 'RcppArmadillo')
 
+gmm_full_cluster_src <- '
+using namespace arma;
+
+// Convert necessary matrix objects to arma
+mat data_a = as<mat>(data_r);
+rowvec pi_a = as<rowvec>(pi_r);
+mat mean_a = as<mat>(mean_r);
+cube cov_a = as<cube>(cov_r);
+
+// Initialize a gmm_full object
+gmm_full model;
+
+// Set the parameters
+model.set_params(mean_a, cov_a, pi_a);
+
+// Return
+return Rcpp::List::create(
+Rcpp::Named("Cluster")=model.assign(data_a, prob_dist));
+'
+
+GMM_arma_cluster <- cxxfunction(signature(data_r='numeric',
+                                  pi_r='numeric',
+                                  mean_r='numeric',
+                                  cov_r='numeric'),
+                        gmm_full_cluster_src, plugin = 'RcppArmadillo')
+
+
+
 GMM_arma(t(Data), msEst$parameters$pro, msEst$parameters$mean,
          msEst$parameters$variance$sigma,
          2,10)
