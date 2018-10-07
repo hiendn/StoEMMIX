@@ -2,6 +2,32 @@ library(Rcpp)
 library(RcppArmadillo)
 library(inline)
 
+gmm_full_cluster_src <- '
+using namespace arma;
+
+// Convert necessary matrix objects to arma
+mat data_a = as<mat>(data_r);
+rowvec pi_a = as<rowvec>(pi_r);
+mat mean_a = as<mat>(mean_r);
+cube cov_a = as<cube>(cov_r);
+
+// Initialize a gmm_full object
+gmm_full model;
+
+// Set the parameters
+model.set_params(mean_a, cov_a, pi_a);
+
+// Return
+return Rcpp::List::create(
+Rcpp::Named("Cluster")=model.assign(data_a, prob_dist));
+'
+
+GMM_arma_cluster <- cxxfunction(signature(data_r='numeric',
+                                          pi_r='numeric',
+                                          mean_r='numeric',
+                                          cov_r='numeric'),
+                                gmm_full_cluster_src, plugin = 'RcppArmadillo')
+
 stoEMMIXpolsafe_src <- '
 using namespace arma;
 using namespace Rcpp;
@@ -29,7 +55,9 @@ int dim_a = data_a.n_rows;
 
 // Safe variances
 for (int gg = 0; gg < groups_a; gg++) {
-cov_a.slice(gg) = cov_a.slice(gg) + safe_a*eye<mat>(dim_a,dim_a);
+if (prod(cov_a.slice(gg).diag())==0) {
+cov_a.slice(gg) = safe_a*eye<mat>(dim_a,dim_a);
+}
 }
 
 // Initialize the Gaussian mixture model object
@@ -60,6 +88,7 @@ cube pol_cov = cov_a;
 
 // Initialize tau matrix
 mat tau = zeros<mat>(groups_a,batch_a);
+rowvec tau_max = zeros<rowvec>(batch_a);
 
 // Begin loop
 for (int count = 0; count < maxit_a; count++) {
@@ -74,11 +103,13 @@ mat subdata_a = data_a.cols(seq_a);
 
 // Compute the tau scores for the subsample
 for (int gg = 0; gg < groups_a; gg++) {
-tau.row(gg) = pi_a(gg)*exp(model.log_p(subdata_a,gg));
+tau.row(gg) = log(pi_a(gg)) + model.log_p(subdata_a,gg);
 }
+tau_max = max(tau,0);
 for (int nn = 0; nn < batch_a; nn++) {
-tau.col(nn) = tau.col(nn)/sum(tau.col(nn));
+tau.col(nn) = tau.col(nn) - tau_max(nn) - log(sum(exp(tau.col(nn)-tau_max(nn))));
 }
+tau = exp(tau);
 
 // Compute the new value of T1
 T1 = (1-gain)*T1 + gain*trans(sum(tau,1));
@@ -103,7 +134,10 @@ T3.slice(gg) = T3.slice(gg) + gain*tau(gg,nn)*subdata_a.col(nn)*trans(subdata_a.
 pi_a = T1/batch_a;
 for (int gg = 0; gg < groups_a; gg++) {
 mean_a.col(gg) = T2.col(gg)/T1(gg);
-cov_a.slice(gg) = (T3.slice(gg)-T2.col(gg)*trans(T2.col(gg))/T1(gg))/T1(gg) + safe_a*eye<mat>(dim_a,dim_a);
+cov_a.slice(gg) = (T3.slice(gg)-T2.col(gg)*trans(T2.col(gg))/T1(gg))/T1(gg);
+if (prod(cov_a.slice(gg).diag())==0) {
+cov_a.slice(gg) = safe_a*eye<mat>(dim_a,dim_a);
+}
 }
 
 // Compute polyak averages
@@ -156,10 +190,12 @@ stoEMMIX_polsafe <- cxxfunction(signature(data_r='numeric',
 Data_hold <- train[,-785]
 PCA <- prcomp(Data_hold)
 Data_hold <- predict(PCA,Data_hold)
-Data <- Data_hold[,1:100]
+Data <- Data_hold[,1:200]
 
 Samp <- sample(1:10,dim(Data)[1],replace = T)
 id <- Samp
+KM <- kmeans(Data,centers = 10,iter.max = 100, nstart = 10)
+id <- KM$cluster
 K <- max(id)
 # estimate mixture parameters
 Pi <- prop.table(tabulate(id))
@@ -168,6 +204,7 @@ S <- sapply(1:K, function(k){ var(Data[id == k,]) })
 dim(S) <- c(dim(Data)[2], dim(Data)[2], K)
 Sto <- stoEMMIX_polsafe(t(Data), Pi, t(Mu),
                     S,
-                    1000,10,0.6,0.5,10000,1)
+                    1000,K,0.6,1,10000,10)
 Cluster <- GMM_arma_cluster(t(Data),Sto$reg_proportions,Sto$reg_means,Sto$reg_covariances)
 adjustedRandIndex(Cluster$Cluster,train$y)
+adjustedRandIndex(KM$cluster,train$y)
