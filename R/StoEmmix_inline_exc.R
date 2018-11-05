@@ -1,3 +1,7 @@
+library(Rcpp)
+library(RcppArmadillo)
+library(inline)
+
 stoEMMIX_src <- '
 using namespace arma;
 using namespace Rcpp;
@@ -110,6 +114,6 @@ stoEMMIX <- cxxfunction(signature(data_r='numeric',
                                   batch_r='integer'),
                         stoEMMIX_src, plugin = 'RcppArmadillo')
 
-stoEMMIX(t(Data), msEst$parameters$pro, msEst$parameters$mean,
-         msEst$parameters$variance$sigma,
-         10000,5,0.6,100)
+# stoEMMIX(t(Data), msEst$parameters$pro, msEst$parameters$mean,
+#          msEst$parameters$variance$sigma,
+#          10000,5,0.6,100)

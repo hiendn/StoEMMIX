@@ -143,7 +143,7 @@ stoEMMIX_pol <- cxxfunction(signature(data_r='numeric',
                                   batch_r='integer'),
                         stoEMMIXpol_src, plugin = 'RcppArmadillo')
 
-Sto <- stoEMMIX_pol(t(Data), msEst$parameters$pro, msEst$parameters$mean,
-         msEst$parameters$variance$sigma,
-         1000,5,0.6,1,1000)
-
+# Sto <- stoEMMIX_pol(t(Data), msEst$parameters$pro, msEst$parameters$mean,
+#          msEst$parameters$variance$sigma,
+#          1000,5,0.6,1,1000)
+# 

@@ -190,10 +190,8 @@ stoEMMIX_polsafe <- cxxfunction(signature(data_r='numeric',
 Data_hold <- train[,-785]
 PCA <- prcomp(Data_hold)
 Data_hold <- predict(PCA,Data_hold)
-Data <- Data_hold[,1:200]
+Data <- Data_hold[,1:50]
 
-Samp <- sample(1:10,dim(Data)[1],replace = T)
-id <- Samp
 KM <- kmeans(Data,centers = 10,iter.max = 100, nstart = 10)
 id <- KM$cluster
 K <- max(id)
@@ -204,7 +202,9 @@ S <- sapply(1:K, function(k){ var(Data[id == k,]) })
 dim(S) <- c(dim(Data)[2], dim(Data)[2], K)
 Sto <- stoEMMIX_polsafe(t(Data), Pi, t(Mu),
                     S,
-                    1000,K,0.6,1,10000,10)
-Cluster <- GMM_arma_cluster(t(Data),Sto$reg_proportions,Sto$reg_means,Sto$reg_covariances)
-adjustedRandIndex(Cluster$Cluster,train$y)
+                    100,K,0.6,1,6000,1)
+Cluster1 <- GMM_arma_cluster(t(Data),Sto$reg_proportions,Sto$reg_means,Sto$reg_covariances)
+Cluster2 <- GMM_arma_cluster(t(Data),Sto$pol_proportions,Sto$pol_means,Sto$pol_covariances)
+adjustedRandIndex(Cluster1$Cluster,train$y)
+adjustedRandIndex(Cluster2$Cluster,train$y)
 adjustedRandIndex(KM$cluster,train$y)
