@@ -11,11 +11,20 @@ Samp <- sample(1:Groups,NN,replace = T)
 msEst <- mstep(modelName = "VVV", data = Data, z = unmap(Samp))
 Dim_vec <- dim(Data)
 
-MC <- em('VVV', data=Data, parameters = msEst$parameters, control = emControl(eps=0,tol=0,itmax=c(10,10)))
-
-MC$parameters
-attributes(MC)$info
+MC <- em('VVV', data=Data, parameters = msEst$parameters, control = emControl(eps=0,tol=0,itmax=1))
 MC$loglik
+MC <- em('VVV', data=Data, parameters = msEst$parameters, control = emControl(eps=0,tol=0,itmax=10))
+MC$loglik
+Sto <- stoEMMIX_pol(t(Data), msEst$parameters$pro, msEst$parameters$mean,
+                    msEst$parameters$variance$sigma,
+                    1000,5,0.6,1,100)
+Sto$`reg_log-likelihood`
+Sto$`pol_log-likelihood`
+Stot <- stoEMMIX_poltrunc(t(Data), msEst$parameters$pro, msEst$parameters$mean,
+                         msEst$parameters$variance$sigma,
+                         1000,5,0.6,1,100,1000,1000,1000)
+Stot$`reg_log-likelihood`
+Stot$`pol_log-likelihood`
 # 
 # REFIT <- em('VVV',data=Data,parameters =list(
 #   pro = Pi_vec,
