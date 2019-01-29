@@ -116,14 +116,6 @@ for (int count = 0; count < maxit_a; count++) {
   model.set_means(mean_a);
   model.set_fcovs(cov_a);
   
-  // Loading bar
-  double percentage = (count+1)/maxit_a;
-  int val = (int) (percentage * 100);
-  int lpad = (int) (percentage * PBWIDTH);
-  int rpad = PBWIDTH - lpad;
-  printf ("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-  fflush (stdout);
-
 }
 
 // Initialize the Gaussian mixture model object with polyak components
