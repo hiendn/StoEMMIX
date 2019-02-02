@@ -305,6 +305,27 @@ return Rcpp::List::create(
   Rcpp::Named("pol_covariances")=model_pol.fcovs);
 '
 
+# Source to use the armadillo GMM functions to compute clusters minibatch outputs
+gmm_full_cluster_src <- '
+using namespace arma;
+
+// Convert necessary matrix objects to arma
+mat data_a = as<mat>(data_r);
+rowvec pi_a = as<rowvec>(pi_r);
+mat mean_a = as<mat>(mean_r);
+cube cov_a = as<cube>(cov_r);
+
+// Initialize a gmm_full object
+gmm_full model;
+
+// Set the parameters
+model.set_params(mean_a, cov_a, pi_a);
+
+// Return
+return Rcpp::List::create(
+Rcpp::Named("Cluster")=model.assign(data_a, prob_dist));
+'
+
 # Define R function for algorithm without truncation
 stoEMMIX_pol <- cxxfunction(signature(data_r='numeric',
                                       pi_r='numeric',
@@ -331,3 +352,10 @@ stoEMMIX_poltrunc <- cxxfunction(signature(data_r='numeric',
                                            c2_r='numeric',
                                            c3_r='numeric'),
                               stoEMMIXpoltrunc_src, plugin = 'RcppArmadillo')
+
+# Define R function for clustering upon obtaining the output from a minibatch estimation
+GMM_arma_cluster <- cxxfunction(signature(data_r='numeric',
+                                          pi_r='numeric',
+                                          mean_r='numeric',
+                                          cov_r='numeric'),
+                                gmm_full_cluster_src, plugin = 'RcppArmadillo')

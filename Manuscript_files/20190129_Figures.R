@@ -30,3 +30,138 @@ points(MC$parameters$mean[1,],MC$parameters$mean[2,],
 # Close plot device
 dev.off()
 
+#################################################################
+##                        Iris1 Results                        ##
+#################################################################
+
+# Load libraries
+library(reshape2)
+library(colorspace)
+
+# Load result data
+load('Iris1.rdata')
+
+# Rename the columns of the data
+colnames(Results) <- c('EM','N=n/10','N=n/10,P','N=n/5','N=n/5,P','N=n/10,T','N=n/10,PT','N=n/5,T','N=n/5,PT')
+
+# Melt the data
+DF <- melt(Results)
+
+# Open a plot device
+pdf(file='./Iris1.pdf',width=12,height=6,paper='special') 
+
+# Construct boxplot
+boxplot(value ~ Var2, data = DF, lwd = 2, ylab = 'log-likelihood',range=0)
+
+# Insert a grid
+grid()
+
+# Plot points over boxplot
+stripchart(value ~ Var2, vertical = TRUE, data = DF, 
+           method = "jitter", add = TRUE, pch = 20, 
+           col = rainbow_hcl(dim(Results)[2]+1,alpha=0.5)[DF$Var1])
+
+# Close plot device
+dev.off()
+
+#################################################################
+##                        Iris2 Results                        ##
+#################################################################
+
+# Load libraries
+library(reshape2)
+library(colorspace)
+
+# Load result data
+load('Iris2.rdata')
+
+# Rename the columns of the data
+colnames(Results) <- c('EM','N=n/10','N=n/10,P','N=n/5','N=n/5,P','N=n/10,T','N=n/10,PT','N=n/5,T','N=n/5,PT')
+
+# Melt the data
+DF <- melt(Results)
+
+# Open a plot device
+pdf(file='./Iris2.pdf',width=12,height=6,paper='special') 
+
+# Construct boxplot
+boxplot(value ~ Var2, data = DF, lwd = 2, ylab = 'log-likelihood',range=0)
+
+# Insert a grid
+grid()
+
+# Plot points over boxplot
+stripchart(value ~ Var2, vertical = TRUE, data = DF, 
+           method = "jitter", add = TRUE, pch = 20, 
+           col = rainbow_hcl(dim(Results)[2]+1,alpha=0.5)[DF$Var1])
+
+# Close plot device
+dev.off()
+
+#################################################################
+##                        Wreath1 Results                      ##
+#################################################################
+
+# Load libraries
+library(reshape2)
+library(colorspace)
+
+# Load result data
+load('Wreath1.rdata')
+
+# Rename the columns of the data
+colnames(Results) <- c('EM','N=n/10','N=n/10,P','N=n/5','N=n/5,P','N=n/10,T','N=n/10,PT','N=n/5,T','N=n/5,PT')
+
+# Melt the data
+DF <- melt(Results)
+
+# Open a plot device
+pdf(file='./Wreath1.pdf',width=12,height=6,paper='special') 
+
+# Construct boxplot
+boxplot(value ~ Var2, data = DF, lwd = 2, ylab = 'log-likelihood',range=0)
+
+# Insert a grid
+grid()
+
+# Plot points over boxplot
+stripchart(value ~ Var2, vertical = TRUE, data = DF, 
+           method = "jitter", add = TRUE, pch = 20, 
+           col = rainbow_hcl(dim(Results)[2]+1,alpha=0.5)[DF$Var1])
+
+# Close plot device
+dev.off()
+
+#################################################################
+##                        Wreath2 Results                      ##
+#################################################################
+
+# Load libraries
+library(reshape2)
+library(colorspace)
+
+# Load result data
+load('Wreath2.rdata')
+
+# Rename the columns of the data
+colnames(Results) <- c('EM','N=n/10','N=n/10,P','N=n/5','N=n/5,P','N=n/10,T','N=n/10,PT','N=n/5,T','N=n/5,PT')
+
+# Melt the data
+DF <- melt(Results)
+
+# Open a plot device
+pdf(file='./Wreath2.pdf',width=12,height=6,paper='special') 
+
+# Construct boxplot
+boxplot(value ~ Var2, data = DF, lwd = 2, ylab = 'log-likelihood',range=0)
+
+# Insert a grid
+grid()
+
+# Plot points over boxplot
+stripchart(value ~ Var2, vertical = TRUE, data = DF, 
+           method = "jitter", add = TRUE, pch = 20, 
+           col = rainbow_hcl(dim(Results)[2]+1,alpha=0.5)[DF$Var1])
+
+# Close plot device
+dev.off()
