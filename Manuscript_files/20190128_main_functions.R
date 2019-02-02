@@ -75,7 +75,7 @@ for (int count = 0; count < maxit_a; count++) {
   for (int nn = 0; nn < batch_a; nn++) {
     colvec tau_current = tau.col(nn);
     double max_tau = tau_current.max();
-    tau.col(nn) = exp(log(pi_a) + tau.col(nn)-max_tau)/sum(log(pi_a) + tau.col(nn)-max_tau);
+    tau.col(nn) = exp(log(pi_a) + tau.col(nn)-max_tau)/sum(exp(log(pi_a) + tau.col(nn)-max_tau));
   }
   
   // Compute the new value of T1
@@ -219,7 +219,7 @@ for (int count = 0; count < maxit_a; count++) {
   for (int nn = 0; nn < batch_a; nn++) {
     colvec tau_current = tau.col(nn);
     double max_tau = tau_current.max();
-    tau.col(nn) = exp(log(pi_a) + tau.col(nn)-max_tau)/sum(log(pi_a) + tau.col(nn)-max_tau);
+    tau.col(nn) = exp(log(pi_a) + tau.col(nn)-max_tau)/sum(exp(log(pi_a) + tau.col(nn)-max_tau));
   }
   
   
