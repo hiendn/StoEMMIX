@@ -243,13 +243,13 @@ source('https://raw.githubusercontent.com/hiendn/StoEMMIX/master/Manuscript_file
 Sys.setenv('R_MAX_VSIZE'=10000000000000)
 
 # Set a random seed
-set.seed(20190203)
+set.seed(20190202)
 
 Results <- matrix(NA, 100, 7)
 for (ii in 1:100) {
   
   # Set number of PCs
-  dPC <- 100
+  dPC <- 5
   
   # Set number of groups
   Groups <- 10
