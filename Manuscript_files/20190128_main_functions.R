@@ -70,10 +70,12 @@ for (int count = 0; count < maxit_a; count++) {
   
   // Compute the tau scores for the subsample
   for (int gg = 0; gg < groups_a; gg++) {
-    tau.row(gg) = pi_a(gg)*exp(model.log_p(subdata_a,gg));
+    tau.row(gg) = model.log_p(subdata_a,gg);
   }
   for (int nn = 0; nn < batch_a; nn++) {
-    tau.col(nn) = tau.col(nn)/sum(tau.col(nn));
+    colvec tau_current = tau.col(nn);
+    double max_tau = tau_current.max();
+    tau.col(nn) = exp(log(pi_a) + tau.col(nn)-max_tau)/sum(log(pi_a) + tau.col(nn)-max_tau);
   }
   
   // Compute the new value of T1
@@ -212,11 +214,14 @@ for (int count = 0; count < maxit_a; count++) {
   
   // Compute the tau scores for the subsample
   for (int gg = 0; gg < groups_a; gg++) {
-    tau.row(gg) = pi_a(gg)*exp(model.log_p(subdata_a,gg));
+    tau.row(gg) = model.log_p(subdata_a,gg);
   }
   for (int nn = 0; nn < batch_a; nn++) {
-    tau.col(nn) = tau.col(nn)/sum(tau.col(nn));
+    colvec tau_current = tau.col(nn);
+    double max_tau = tau_current.max();
+    tau.col(nn) = exp(log(pi_a) + tau.col(nn)-max_tau)/sum(log(pi_a) + tau.col(nn)-max_tau);
   }
+  
   
   // Compute the new value of T1
   T1 = (1-gain)*T1 + gain*trans(sum(tau,1));
