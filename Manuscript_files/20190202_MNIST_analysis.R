@@ -249,7 +249,7 @@ Results <- matrix(NA, 100, 7)
 for (ii in 1:100) {
   
   # Set number of PCs
-  dPC <- 5
+  dPC <- 100
   
   # Set number of groups
   Groups <- 10
