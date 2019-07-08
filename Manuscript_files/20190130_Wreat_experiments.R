@@ -17,7 +17,14 @@ data(wreath)
 
 ## Estimate mixture model parameters
 MC_wreath <- Mclust(wreath, G = 14, modeNames = 'VVV')
-
+# Set parameters 
+g <- 14
+d <-2
+# True matrix
+True_matrix <- matrix(NA,g,1+d+d+choose(d,2))
+for (ii in 1:g) {
+  True_matrix[ii,] <- c(Pi[ii],Mu[ii,],Sigma[,,ii][upper.tri(Sigma[,,ii],diag = T)])
+}
 
 ## Setup parameters
 # Number of observations to simulation
