@@ -1,5 +1,5 @@
 #################################################################
-##                            Exp1                            ##
+##                            Poi1                            ##
 #################################################################
 
 # Load libraries
@@ -17,9 +17,9 @@ Sys.setenv('R_MAX_VSIZE'=10000000000000)
 g <- 3
 ## Estimate mixture model parameters
 # Proportions
-Pi <- c(0.2,0.1,0.7)
+Pi <- c(0.8,0.1,0.1)
 # Lambda
-Lambda <- c(1,9,15)
+Lambda <- c(1,5,12)
 # True matrix
 True_matrix <- matrix(NA,g,2)
 for (ii in 1:g) {
@@ -47,19 +47,19 @@ for (rr in 1:Rep) {
   # Simulate data
   IDs <- sample(1:3,NN,replace=TRUE,prob=Pi)
   Data <- matrix(NA,nrow=NN,ncol=1)
-  Data[IDs==1] <- rexp(sum(IDs==1),Lambda[1])
-  Data[IDs==2] <- rexp(sum(IDs==2),Lambda[2])
-  Data[IDs==3] <- rexp(sum(IDs==3),Lambda[3])
+  Data[IDs==1] <- rpois(sum(IDs==1),Lambda[1])
+  Data[IDs==2] <- rpois(sum(IDs==2),Lambda[2])
+  Data[IDs==3] <- rpois(sum(IDs==3),Lambda[3])
   
   # Randomly generate labels for initialization
   Samp <- sample(1:Groups,NN,replace = T)
   
   # Initialize parameters
   Pi_int <- table(Samp)/NN
-  Lambda_int <- 1/c(mean(Data[Samp==1]),mean(Data[Samp==2]),mean(Data[Samp==3]))
+  Lambda_int <- c(mean(Data[Samp==1]),mean(Data[Samp==2]),mean(Data[Samp==3]))
   # Run batch EM algorithm 
   Tick <- proc.time()[3]
-  MC <- EMExponential_pol(data=Data,pi_r=Pi_int,lambda_r = Lambda_int,maxit_r = 10,groups_r = g)
+  MC <- EMPoisson_pol(data=Data,pi_r=Pi_int,lambda_r = Lambda_int,maxit_r = 10,groups_r = g)
   Timing[rr,1] <- proc.time()[3]-Tick
   # Get likelihood value for batch EM algorithm
   Results[rr,1] <-MC$`reg_log-likelihood`
@@ -70,11 +70,11 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,1] <- sum(apply((as.matrix(dist(rbind(MC_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI
-  ARI_results[rr,1] <- adjustedRandIndex(IDs,Exp_clust(Data,MC$reg_proportions,MC$reg_lambda))
+  ARI_results[rr,1] <- adjustedRandIndex(IDs,Pois_clust(Data,MC$reg_proportions,MC$reg_lambda))
   
   # Run minibatch algorithm with batch size 10000
   Tick <- proc.time()[3]
-  Sto <- stoExponential_pol(Data, Pi_int, Lambda_int,
+  Sto <- stoPoisson_pol(Data, Pi_int, Lambda_int,
                       10*NN/10000,Groups,0.6,1-10^-10,10000)
   Results[rr,2] <- Sto$`reg_log-likelihood`
   Results[rr,3] <- Sto$`pol_log-likelihood`
@@ -86,7 +86,7 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,2] <- sum(apply((as.matrix(dist(rbind(Reg_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (reg)
-  ARI_results[rr,2] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
+  ARI_results[rr,2] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
   
   # Get parameter estimates (polyak)
   Pol_matrix <- matrix(NA,g,2)
@@ -95,11 +95,11 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,3] <- sum(apply((as.matrix(dist(rbind(Pol_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (pol)
-  ARI_results[rr,3] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
+  ARI_results[rr,3] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
   
   # Run minibatch algorithm with batch size 20000
   Tick <- proc.time()[3]
-  Sto <- stoExponential_pol(Data, Pi_int, Lambda_int,
+  Sto <- stoPoisson_pol(Data, Pi_int, Lambda_int,
                       10*NN/20000,Groups,0.6,1-10^-10,20000)
   Results[rr,4] <- Sto$`reg_log-likelihood`
   Results[rr,5] <- Sto$`pol_log-likelihood`
@@ -111,7 +111,7 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,4] <- sum(apply((as.matrix(dist(rbind(Reg_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (reg)
-  ARI_results[rr,4] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
+  ARI_results[rr,4] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
   
   # Get parameter estimates (polyak)
   Pol_matrix <- matrix(NA,g,2)
@@ -120,35 +120,35 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,5] <- sum(apply((as.matrix(dist(rbind(Pol_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (pol)
-  ARI_results[rr,5] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
+  ARI_results[rr,5] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
   
   # Save and print outputs
-  save(Results,file='./Exp1.rdata')
+  save(Results,file='./Poi1.rdata')
   print(c(rr,Results[rr,]))
-  save(Timing,file='./Exp1timing.rdata')
-  save(ARI_results,file='./Exp1ARI.rdata')
-  save(SE_results,file='./Exp1SE.rdata')
+  save(Timing,file='./Poi1timing.rdata')
+  save(ARI_results,file='./Poi1ARI.rdata')
+  save(SE_results,file='./Poi1SE.rdata')
   print(c(rr,Timing[rr,]))
   print(c(rr,ARI_results[rr,]))
   print(c(rr,SE_results[rr,]))
   
   # Also sink results to a text file
-  sink('./Exp1.txt',append = TRUE)
+  sink('./Poi1.txt',append = TRUE)
   cat(rr,Results[rr,],'\n')
   sink()
-  sink('./Exp1timing.txt',append = TRUE)
+  sink('./Poi1timing.txt',append = TRUE)
   cat(rr,Timing[rr,],'\n')
   sink()
-  sink('./Exp1ARI.txt',append = TRUE)
+  sink('./Poi1ARI.txt',append = TRUE)
   cat(rr,ARI_results[rr,],'\n')
   sink()
-  sink('./Exp1SE.txt',append = TRUE)
+  sink('./Poi1SE.txt',append = TRUE)
   cat(rr,SE_results[rr,],'\n')
   sink()
 }
 
 #################################################################
-##                           Exp2                             ##
+##                           Poi2                             ##
 #################################################################
 
 # Load libraries
@@ -166,9 +166,9 @@ Sys.setenv('R_MAX_VSIZE'=10000000000000)
 g <- 3
 ## Estimate mixture model parameters
 # Proportions
-Pi <- c(0.2,0.1,0.7)
+Pi <- c(0.8,0.1,0.1)
 # Lambda
-Lambda <- c(1,9,15)
+Lambda <- c(1,5,12)
 # True matrix
 True_matrix <- matrix(NA,g,2)
 for (ii in 1:g) {
@@ -196,19 +196,19 @@ for (rr in 1:Rep) {
   # Simulate data
   IDs <- sample(1:3,NN,replace=TRUE,prob=Pi)
   Data <- matrix(NA,nrow=NN,ncol=1)
-  Data[IDs==1] <- rexp(sum(IDs==1),Lambda[1])
-  Data[IDs==2] <- rexp(sum(IDs==2),Lambda[2])
-  Data[IDs==3] <- rexp(sum(IDs==3),Lambda[3])
+  Data[IDs==1] <- rpois(sum(IDs==1),Lambda[1])
+  Data[IDs==2] <- rpois(sum(IDs==2),Lambda[2])
+  Data[IDs==3] <- rpois(sum(IDs==3),Lambda[3])
   
   # Randomly generate labels for initialization
   Samp <- sample(1:Groups,NN,replace = T)
   
   # Initialize parameters
   Pi_int <- table(Samp)/NN
-  Lambda_int <- 1/c(mean(Data[Samp==1]),mean(Data[Samp==2]),mean(Data[Samp==3]))
+  Lambda_int <- c(mean(Data[Samp==1]),mean(Data[Samp==2]),mean(Data[Samp==3]))
   # Run batch EM algorithm 
   Tick <- proc.time()[3]
-  MC <- EMExponential_pol(data=Data,pi_r=Pi_int,lambda_r = Lambda_int,maxit_r = 10,groups_r = g)
+  MC <- EMPoisson_pol(data=Data,pi_r=Pi_int,lambda_r = Lambda_int,maxit_r = 10,groups_r = g)
   Timing[rr,1] <- proc.time()[3]-Tick
   # Get likelihood value for batch EM algorithm
   Results[rr,1] <-MC$`reg_log-likelihood`
@@ -219,11 +219,11 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,1] <- sum(apply((as.matrix(dist(rbind(MC_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI
-  ARI_results[rr,1] <- adjustedRandIndex(IDs,Exp_clust(Data,MC$reg_proportions,MC$reg_lambda))
+  ARI_results[rr,1] <- adjustedRandIndex(IDs,Pois_clust(Data,MC$reg_proportions,MC$reg_lambda))
   
   # Run minibatch algorithm with batch size 10000
   Tick <- proc.time()[3]
-  Sto <- stoExponential_pol(Data, Pi_int, Lambda_int,
+  Sto <- stoPoisson_pol(Data, Pi_int, Lambda_int,
                             10*NN/100000,Groups,0.6,1-10^-10,100000)
   Results[rr,2] <- Sto$`reg_log-likelihood`
   Results[rr,3] <- Sto$`pol_log-likelihood`
@@ -235,7 +235,7 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,2] <- sum(apply((as.matrix(dist(rbind(Reg_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (reg)
-  ARI_results[rr,2] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
+  ARI_results[rr,2] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
   
   # Get parameter estimates (polyak)
   Pol_matrix <- matrix(NA,g,2)
@@ -244,11 +244,11 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,3] <- sum(apply((as.matrix(dist(rbind(Pol_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (pol)
-  ARI_results[rr,3] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
+  ARI_results[rr,3] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
   
   # Run minibatch algorithm with batch size 20000
   Tick <- proc.time()[3]
-  Sto <- stoExponential_pol(Data, Pi_int, Lambda_int,
+  Sto <- stoPoisson_pol(Data, Pi_int, Lambda_int,
                             10*NN/200000,Groups,0.6,1-10^-10,200000)
   Results[rr,4] <- Sto$`reg_log-likelihood`
   Results[rr,5] <- Sto$`pol_log-likelihood`
@@ -260,7 +260,7 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,4] <- sum(apply((as.matrix(dist(rbind(Reg_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (reg)
-  ARI_results[rr,4] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
+  ARI_results[rr,4] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$reg_proportions,Sto$reg_lambda))
   
   # Get parameter estimates (polyak)
   Pol_matrix <- matrix(NA,g,2)
@@ -269,29 +269,29 @@ for (rr in 1:Rep) {
   }
   SE_results[rr,5] <- sum(apply((as.matrix(dist(rbind(Pol_matrix,True_matrix),diag=T,upper=T))[1:g,(g+1):(2*g)])^2,1,min))
   # Get ARI (pol)
-  ARI_results[rr,5] <- adjustedRandIndex(IDs,Exp_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
+  ARI_results[rr,5] <- adjustedRandIndex(IDs,Pois_clust(Data,Sto$pol_proportions,Sto$pol_lambda))
   
   # Save and print outputs
-  save(Results,file='./Exp2.rdata')
+  save(Results,file='./Poi2.rdata')
   print(c(rr,Results[rr,]))
-  save(Timing,file='./Exp2timing.rdata')
-  save(ARI_results,file='./Exp2ARI.rdata')
-  save(SE_results,file='./Exp2SE.rdata')
+  save(Timing,file='./Poi2timing.rdata')
+  save(ARI_results,file='./Poi2ARI.rdata')
+  save(SE_results,file='./Poi2SE.rdata')
   print(c(rr,Timing[rr,]))
   print(c(rr,ARI_results[rr,]))
   print(c(rr,SE_results[rr,]))
   
   # Also sink results to a text file
-  sink('./Exp2.txt',append = TRUE)
+  sink('./Poi2.txt',append = TRUE)
   cat(rr,Results[rr,],'\n')
   sink()
-  sink('./Exp2timing.txt',append = TRUE)
+  sink('./Poi2timing.txt',append = TRUE)
   cat(rr,Timing[rr,],'\n')
   sink()
-  sink('./Exp2ARI.txt',append = TRUE)
+  sink('./Poi2ARI.txt',append = TRUE)
   cat(rr,ARI_results[rr,],'\n')
   sink()
-  sink('./Exp2SE.txt',append = TRUE)
+  sink('./Poi2SE.txt',append = TRUE)
   cat(rr,SE_results[rr,],'\n')
   sink()
 }
